@@ -10,6 +10,7 @@
 //   )
 //
 def call(Map config = [:]) {
+    def nodeLabel        = config.get('NODE_LABEL', 'nginx-agent')
     def slackChannel     = config.get('SLACK_CHANNEL_NAME', 'jenkins-notification')
     def environmentName  = config.get('ENVIRONMENT', 'prod')
     def terraformRepoUrl = config.get('TERRAFORM_REPO_URL', 'https://github.com/priyanshubanwala1222-png/Terraform-Nginx-Task-Code.git')
