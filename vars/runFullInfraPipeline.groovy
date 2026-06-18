@@ -44,6 +44,12 @@ def call(Map config = [:]) {
                             branches: [[name: "*/${branch}"]],
                             userRemoteConfigs: [[url: terraformRepoUrl]]
                         ])
+
+                        echo "CI/CD Automation: Purging stale local Terraform cache directories..."
+                        sh '''
+                            rm -rf .terraform/
+                            rm -f .terraform.lock.hcl
+                        '''
                     }
                 }
             }
