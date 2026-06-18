@@ -173,14 +173,18 @@ def call(Map config = [:]) {
                         }
                     }
                     sshagent([sshCredentialsId]) {
-                        sh '''
-                            echo "Waiting for the bastion to accept SSH..."
-                            for i in $(seq 1 20); do
-                                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 \
-                                    ubuntu@${env.BASTION_PUBLIC_IP} "echo bastion ready" && break
-                                sleep 10
-                            done
-                        '''
+                        withEnv(["BASTION_IP=${env.BASTION_PUBLIC_IP}"]) {
+                            sh '''
+                                echo "Waiting for the bastion host at ${BASTION_IP} to accept SSH..."
+                                
+                                for i in $(seq 1 20); do
+                                    # Using simple ${BASTION_IP} syntax makes Dash shell completely working
+                                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 \
+                                        ubuntu@${BASTION_IP} "echo bastion ready" && break
+                                    sleep 10
+                                done
+                            '''
+                        }
                     }
                     sleep(time: 15, unit: 'SECONDS')
                 }
