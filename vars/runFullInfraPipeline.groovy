@@ -25,6 +25,12 @@ def call(Map config = [:]) {
     pipeline {
         agent { label "${nodeLabel}" }
 
+        environment {
+            // This makes the keys available automatically to ALL stages, including Outputs
+            AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID_GLOBAL_ID')
+            AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY_GLOBAL_ID')
+        }
+
         parameters {
             choice(
                 name: 'TF_ACTION',
