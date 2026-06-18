@@ -115,10 +115,21 @@ def call(Map config = [:]) {
                 when { expression { return params.TF_ACTION == 'apply' } }
                 steps {
                     dir('terraform') {
+                        withCredentials([usernamePassword(credentialsId: awsCredentialsId,
+                                                     usernameVariable: 'AWS_ACCESS_KEY_ID',
+                                                     passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         script {
-                            env.BASTION_PUBLIC_IP = sh(script: 'terraform output -raw bastion-public-ip', returnStdout: true).trim()
-                        }
-                        echo "Bastion public IP : ${env.BASTION_PUBLIC_IP}"
+                            sh '''
+                                # Explicitly bind the credentials variables just to be safe
+                                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                                
+                                # Now Terraform can authenticate against your remote state backend seamlessly!
+                                BASTION_IP=$(terraform output -raw bastion-public-ip)
+                                echo "Captured Bastion IP: ${BASTION_IP}"
+                            '''
+                          }
+                       }
                     }
                 }
             }
