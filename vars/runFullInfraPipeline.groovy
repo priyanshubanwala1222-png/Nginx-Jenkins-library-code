@@ -23,7 +23,7 @@ def call(Map config = [:]) {
     def actionMessage    = config.get('ACTION_MESSAGE', "Provisioning infra + deploying Nginx to ${environmentName}")
 
     pipeline {
-        agent { label 'assign-6' }
+        agent { label "${nodeLabel}" }
 
         parameters {
             choice(
