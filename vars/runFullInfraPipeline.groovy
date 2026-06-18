@@ -124,7 +124,7 @@ def call(Map config = [:]) {
                                 export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
                                 export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
                                 
-                                # Now Terraform can authenticate against your remote state backend seamlessly!
+                                # Now Terraform can authenticate against remote state backend seamlessly!
                                 BASTION_IP=$(terraform output -raw bastion-public-ip)
                                 echo "Captured Bastion IP: ${BASTION_IP}"
                             '''
@@ -150,7 +150,7 @@ def call(Map config = [:]) {
             stage('Install Ansible Dependencies') {
                 when { expression { return params.TF_ACTION == 'apply' } }
                 steps {
-                    dir("ansible/${ansibleBasePath}") {
+                    dir('ansible') {
                         sh '''
                             python3 -m pip install --quiet boto3 botocore \
                                 || python3 -m pip install --quiet --break-system-packages boto3 botocore
@@ -163,6 +163,15 @@ def call(Map config = [:]) {
             stage('Wait for instances to be reachable') {
                 when { expression { return params.TF_ACTION == 'apply' } }
                 steps {
+                    dir('terraform') {
+                        withCredentials([usernamePassword(credentialsId: awsCredentialsId,
+                                                         usernameVariable: 'AWS_ACCESS_KEY_ID',
+                                                         passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            script {
+                                env.BASTION_PUBLIC_IP = sh(script: "terraform output -raw bastion-public-ip", returnStdout: true).trim()
+                            }
+                        }
+                    }
                     sshagent([sshCredentialsId]) {
                         sh '''
                             echo "Waiting for the bastion to accept SSH..."
@@ -173,14 +182,14 @@ def call(Map config = [:]) {
                             done
                         '''
                     }
-                    sleep(time: 45, unit: 'SECONDS')
+                    sleep(time: 15, unit: 'SECONDS')
                 }
             }
 
             stage('Run Ansible Playbook') {
                 when { expression { return params.TF_ACTION == 'apply' } }
                 steps {
-                    dir("ansible/${ansibleBasePath}") {
+                    dir('ansible') {
                         withCredentials([usernamePassword(credentialsId: awsCredentialsId,
                                                            usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                            passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
