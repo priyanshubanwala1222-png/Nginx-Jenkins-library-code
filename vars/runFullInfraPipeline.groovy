@@ -54,7 +54,7 @@ def call(Map config = [:]) {
                         withCredentials([usernamePassword(credentialsId: awsCredentialsId,
                                                            usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                            passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                            sh """
+                            sh '''
 
                                 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
                                 export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
@@ -65,7 +65,7 @@ def call(Map config = [:]) {
                                 else
                                     terraform plan -input=false -destroy -out=tfplan.out
                                 fi
-                            """
+                            '''
                         }
                     }
                 }
@@ -139,14 +139,14 @@ def call(Map config = [:]) {
                 when { expression { return params.TF_ACTION == 'apply' } }
                 steps {
                     sshagent([sshCredentialsId]) {
-                        sh """
+                        sh '''
                             echo "Waiting for the bastion to accept SSH..."
                             for i in $(seq 1 20); do
                                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 \
                                     ubuntu@${env.BASTION_PUBLIC_IP} "echo bastion ready" && break
                                 sleep 10
                             done
-                        """
+                        '''
                     }
                     sleep(time: 45, unit: 'SECONDS')
                 }
@@ -160,11 +160,11 @@ def call(Map config = [:]) {
                                                            usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                            passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                             sshagent([sshCredentialsId]) {
-                                sh """
+                                sh '''
                                     export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
                                     export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
                                     ansible-playbook -i inventories/aws_ec2.yml site.yml
-                                """
+                                '''
                             }
                         }
                     }
