@@ -152,14 +152,8 @@ def call(Map config = [:]) {
                 steps {
                     dir('ansible') {
                         sh '''
-                            echo "Creating isolated Python environment..."
-                            python3 -m venv venv
-                            
-                            echo "Activating virtual environment and installing SDKs securely..."
-                            . venv/bin/activate
-                            
-                            # Standard pip installations work perfectly inside a venv!
-                            pip install --quiet boto3 botocore
+                            echo "Installing AWS SDK elements globally with override flags..."
+                            python3 -m pip install --quiet --break-system-packages boto3 botocore
                             
                             echo "Installing required Ansible collections..."
                             ansible-galaxy collection install -r requirements.yml
@@ -206,9 +200,7 @@ def call(Map config = [:]) {
                                                            usernameVariable: 'AWS_ACCESS_KEY_ID',
                                                            passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                             sshagent([sshCredentialsId]) {
-                                sh '''
-                                    . venv/bin/activate
-                                    
+                                sh '''                                    
                                     export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
                                     export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
                                     
