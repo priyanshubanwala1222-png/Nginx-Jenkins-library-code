@@ -152,8 +152,16 @@ def call(Map config = [:]) {
                 steps {
                     dir('ansible') {
                         sh '''
-                            python3 -m pip install --quiet boto3 botocore \
-                                || python3 -m pip install --quiet --break-system-packages boto3 botocore
+                            echo "Creating isolated Python environment..."
+                            python3 -m venv venv
+                            
+                            echo "Activating virtual environment and installing SDKs securely..."
+                            . venv/bin/activate
+                            
+                            # Standard pip installations work perfectly inside a venv!
+                            pip install --quiet boto3 botocore
+                            
+                            echo "Installing required Ansible collections..."
                             ansible-galaxy collection install -r requirements.yml
                         '''
                     }
